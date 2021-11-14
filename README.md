@@ -1,3 +1,6 @@
+![Version](https://img.shields.io/github/release/syfxlin/origami.svg?label=Version&style=flat-square) ![PYTHON](https://img.shields.io/badge/PYTHON-3.X.X-green.svg?style=flat-square) ![license](https://img.shields.io/badge/license-GPL%20v3-orange.svg?style=flat-square)
+
+
 # CanvasReminder
  Remind you to finish your homework!!!! 提醒你完成Canvas作业
  
