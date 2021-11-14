@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/github/release/syfxlin/origami.svg?label=Version&style=flat-square) ![PYTHON](https://img.shields.io/badge/Python-3.X.X-green.svg?style=flat-square) ![license](https://img.shields.io/badge/license-GPL%20v3-orange.svg?style=flat-square)
+![Version](https://img.shields.io/github/release/dora-world/CanvasReminder.svg?label=Version&style=flat-square) ![PYTHON](https://img.shields.io/badge/Python-3.X.X-green.svg?style=flat-square) ![license](https://img.shields.io/badge/license-GPL%20v3-orange.svg?style=flat-square)
 
 
 # CanvasReminder
