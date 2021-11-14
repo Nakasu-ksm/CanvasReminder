@@ -9,6 +9,9 @@ from PyQt5.QtCore import Qt
 import configparser
 import requests
 import webbrowser
+
+import lib.musicPlay as mp
+
 pygame.init()
 config = configparser.ConfigParser() # 类实例化
 config.read("config.ini",encoding='utf-8')
@@ -17,9 +20,10 @@ web = config['DEFAULT']['website']
 remind = config['TIME']['remindtime']
 token = config['DEFAULT']['APITOKEN']
 ismusic = config['CONFIG']['RemindMusic']
-musicname = config['CONFIG']['RemindMusicName']
-Music = music.load(musicname)
-
+remindtimec = config['CONFIG']['RemindTime']
+# test = mp.getRandomMusic()
+# print(test)
+# sys.exit(0)
 headers = {
     'Authorization':"Bearer {}".format(token)
 }
@@ -71,6 +75,8 @@ def show_homework(homework,timeStamp, calender_activity,endtime,today,LastLoop):
     enddate = sec_to_data(endint)
     if ismusic == "True":
         if not music.get_busy():
+            MusicName = mp.getRandomMusic()
+            Music = mp.loadMusic(MusicName)
             music.play()
     if calender_activity == 1:
         reply = QMessageBox.warning(q, '日历项目', '你有日历项目\n名称:' + homework["plannable"][
@@ -96,6 +102,7 @@ def show_homework(homework,timeStamp, calender_activity,endtime,today,LastLoop):
         if ismusic == "True":
             # 每个窗口播放歌曲
             if music.get_busy():
+
                 music.stop()
 
     #sys.exit(0)
@@ -109,54 +116,51 @@ def run():
     # cur.execute()
     try:
         getjson = requests.get('{}/api/v1/planner/items?start_date='.format(web)+homeworktime, headers=headers)
+        js = json.loads(getjson.text)
+        last = len(js)
+        count = 0
+        LastLoop = False
+        for jsloop in js:
+            if last == count + 1:
+                LastLoop = True
+            count = count + 1
+            calender_activity = 0
+            if jsloop['plannable_type'] == "calendar_event" or jsloop['plannable_type'] == "planner_note":
+                # due = jsloop['plannable']['end_at']
+                due = jsloop['plannable_date']
+
+                calender_activity = 1
+            else:
+                try:
+                    due = jsloop['plannable']['due_at']
+                    if jsloop['plannable']['due_at'] == None:
+                        due = jsloop['plannable_date']
+
+
+                except:
+
+                    continue
+
+            if due:
+                timeArray = time.strptime(due, "%Y-%m-%dT%H:%M:%SZ")
+                endtime = int(time.mktime(timeArray)) + 28800  # 东八
+                dateArray = datetime.datetime.fromtimestamp(endtime)
+                timeStamp = dateArray.strftime("%Y年%m月%d日-%H点%M分%S秒")
+                if not assignment.get(jsloop['plannable']['id']):
+                    assignment[jsloop['plannable']['id']] = int(time.mktime(time.localtime()))
+                    show_homework(jsloop, timeStamp, calender_activity, endtime, homeworktime, LastLoop)
+                util_time = int(time.mktime(time.localtime())) - int(assignment[jsloop['plannable']['id']])
+                if util_time >= int(remind):
+                    # 只显示今日的
+
+                    assignment[jsloop['plannable']['id']] = int(time.mktime(time.localtime()))
+                    show_homework(jsloop, timeStamp, calender_activity, endtime, homeworktime, LastLoop)
+                else:
+                    continue
 
     except:
         return
 
-    js = json.loads(getjson.text)
-    last = len(js)
-    count = 0
-    LastLoop = False
-    for jsloop in js:
-        if last == count+1:
-            LastLoop = True
-        count = count + 1
-        calender_activity = 0
-        if jsloop['plannable_type'] == "calendar_event" or jsloop['plannable_type'] == "planner_note":
-            # due = jsloop['plannable']['end_at']
-            due = jsloop['plannable_date']
-
-            calender_activity = 1
-        else:
-            try:
-                due = jsloop['plannable']['due_at']
-                if jsloop['plannable']['due_at'] == None:
-                    due = jsloop['plannable_date']
-
-
-            except:
-
-                continue
-
-
-
-
-        if due:
-            timeArray = time.strptime(due, "%Y-%m-%dT%H:%M:%SZ")
-            endtime = int(time.mktime(timeArray)) + 28800  # 东八
-            dateArray = datetime.datetime.fromtimestamp(endtime)
-            timeStamp = dateArray.strftime("%Y年%m月%d日-%H点%M分%S秒")
-            if not assignment.get(jsloop['plannable']['id']):
-                assignment[jsloop['plannable']['id']] = int(time.mktime(time.localtime()))
-                show_homework(jsloop, timeStamp, calender_activity, endtime, homeworktime, LastLoop)
-            util_time = int(time.mktime(time.localtime())) - int(assignment[jsloop['plannable']['id']])
-            if util_time >= int(remind):
-                # 只显示今日的
-
-                assignment[jsloop['plannable']['id']] = int(time.mktime(time.localtime()))
-                show_homework(jsloop, timeStamp, calender_activity, endtime, homeworktime, LastLoop)
-            else:
-                continue
 
 
 
@@ -166,6 +170,6 @@ def run():
 
 
 
-schedule.every(0.01).minutes.do(run)
+schedule.every(3).seconds.do(run)
 while True:
     schedule.run_pending()  # run_pending：运行所有可以运行的任务
