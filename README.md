@@ -12,4 +12,4 @@
  
  website = 你的Canvas网址
  
- APITOKEN = 你申请的canvas密钥
+ APITOKEN = 你申请的canvas密钥.
